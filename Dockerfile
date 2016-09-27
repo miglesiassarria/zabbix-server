@@ -177,7 +177,32 @@ RUN \
   mkdir -p /etc/zabbix/snmp/mibs && \
   rm -rf /tmp/*
 
-  # TODO apply http://geofrogger.net/review/snmptt-hide-generic-part.patch
+
+######################################## NFQSOLUTIONS CONTRIBUTION ##################################################
+COPY nfqsolutions/zabbix_sendmail.sh /usr/local/share/zabbix/alertscripts/zabbix_sendmail.sh
+RUN chmod +x /usr/local/share/zabbix/alertscripts/zabbix_sendmail.sh
+RUN echo "UserParameter=pyora[*],/usr/local/share/zabbix/externalscripts/pyora.py --username \$1 --password \$2 --address \$3 --database \$4 \$5 \$6 \$7 \$8" >> /usr/local/etc/zabbix_agentd.conf
+
+## INSTALACION Y CONFIGURACION DE PYORA
+ADD nfqsolutions/cx_Oracle-5.1.2-11g-py27-1.x86_64.rpm /tmp
+ADD nfqsolutions/oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm /tmp
+RUN yum install -y libaio
+RUN rpm -ivh /tmp/oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm
+RUN rpm -ivh /tmp/cx_Oracle-5.1.2-11g-py27-1.x86_64.rpm
+ENV LD_LIBRARY_PATH=/usr/lib/oracle/11.2/client64/lib/
+ENV ORACLE_HOME=/usr/lib/oracle/11.2/client64/
+ENV PATH=$ORACLE_HOME/bin:$PATH
+
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libclntsh.so.11.1 /usr/lib64/libclntsh.so.11.1
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libnnz11.so /usr/lib64/libnnz11.so
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libocci.so.11.1 /usr/lib64/libocci.so.11.1
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libociei.so /usr/lib64/libociei.so
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libsqlplusic.so /usr/lib64/libsqlplusic.so
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libsqlplus.so /usr/lib64/libsqlplus.so
+
+RUN ln -sf /usr/share/zoneinfo/Europe/Madrid /etc/localtime
+
+
 
 CMD ["/config/bootstrap.sh"]
 

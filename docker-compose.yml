@@ -1,29 +1,32 @@
-zabbix-db-storage:
-  image: busybox:latest
-  volumes:
-    - /var/lib/mysql
+bbdd:
+ image: solutions/zabbix-db-mariadb
+ restart: always
+ environment:
+  - MARIADB_USER=zabbix
+  - MARIADB_PASS=qwerty
+ volumes:
+  - /opt/zabbix/volumes/zabbix-backups:/backups
+  - /opt/zabbix/volumes/bbdd:/var/lib/mysql/zabbix/
 
-zabbix-db:
-  image: monitoringartist/zabbix-db-mariadb
-  volumes:
-    - /backups:/backups
-    - /etc/localtime:/etc/localtime:ro
-  volumes_from:
-    - zabbix-db-storage
-  environment:
-    - MARIADB_USER=zabbix
-    - MARIADB_PASS=my_password
 
-zabbix-server:
-  image: monitoringartist/zabbix-2.4:latest
-  ports:
-    - "80:80"
-    - "10051:10051"
-  volumes:
-    - /etc/localtime:/etc/localtime:ro
-  links:
-    - zabbix-db:zabbix.db
-  environment:
-    - ZS_DBHost=zabbix.db
-    - ZS_DBUser=zabbix
-    - ZS_DBPassword=my_password
+zabbix2:
+ image: solutions/zabbix3
+ restart: always
+ ports:
+  - "1051:1051"
+  - "80:80"
+  - "10052:10051"
+ environment:
+  - PHP_date_timezone=Europe/Madrid
+  - ZS_DBHost=bbdd3
+  - ZS_DBUser=zabbix
+  - ZS_DBPassword=qwerty
+  - CUENTA_CORREO=auto@nfq.es
+  - PASS_CORREO=abcd1234
+  - SLACK_WEBHOOK=https://hooks.slack.com/services/QQ3PTH/B67THC0D3/ABCDGabcDEF124
+ volumes:
+  - /opt/zabbix/volumes/custom-config:/usr/local/etc/
+  - /opt/zabbix/volumes/externalscripts:/usr/local/share/zabbix/externalscripts
+  - /opt/zabbix/volumes/logs:/tmp/
+ links:
+  - bbdd:bbdd
