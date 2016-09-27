@@ -1,29 +1,29 @@
-zabbix-db-storage:
-  image: busybox:latest
-  volumes:
-    - /var/lib/mysql
-
-zabbix-db:
-  image: monitoringartist/zabbix-db-mariadb
-  volumes:
-    - /backups:/backups
-    - /etc/localtime:/etc/localtime:ro
-  volumes_from:
-    - zabbix-db-storage
-  environment:
-    - MARIADB_USER=zabbix
-    - MARIADB_PASS=my_password
+bbdd:
+ image: solutions/zabbix-db-mariadb
+ restart: always
+ environment:
+  - MARIADB_USER=zabbix
+  - MARIADB_PASS=qwerty
+ volumes:
+  - /opt/zabbix_test/volumes/zabbix-backups:/zabbix-backup
+  - /opt/zabbix_test/volumes/bbdd:/var/lib/mysql/zabbix/
 
 zabbix-server:
-  image: monitoringartist/zabbix-2.4:latest
+  image: test/zabbix
   ports:
     - "80:80"
     - "10051:10051"
   volumes:
-    - /etc/localtime:/etc/localtime:ro
+    - /opt/zabbix_test/volumes/logs:/tmp/
+    - /opt/zabbix_test/volumes/externalscripts:/usr/local/share/zabbix/externalscripts
+    - /opt/zabbix_test/volumes/config:/usr/local/etc
+    - /opt/zabbix_test/volumes/externalscripts:/testing
+#    - /etc/localtime:/etc/localtime:ro
   links:
-    - zabbix-db:zabbix.db
+    - bbdd:bbdd
   environment:
-    - ZS_DBHost=zabbix.db
+    - ZS_DBHost=bbdd
     - ZS_DBUser=zabbix
-    - ZS_DBPassword=my_password
+    - ZS_DBPassword=qwerty
+    - CUENTA_CORREO=auto@nfq.es
+    - PASS_CORREO=abcd1234
