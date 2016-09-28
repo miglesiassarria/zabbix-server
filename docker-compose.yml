@@ -1,6 +1,5 @@
 bbdd:
  image: solutions/zabbix-db-mariadb
- restart: always
  environment:
   - MARIADB_USER=zabbix
   - MARIADB_PASS=qwerty
