@@ -347,24 +347,3 @@ Run specific Zabbix version, e.g. 3.0.0 - just specify 3.0.0 tag for image:
 		monitoringartist/zabbix-3.0-xxl:3.0.0
 ```
 
-Experimental
-============
-
-- Distributed Application Bundle (Docker 1.12+) - [zabbix-3.0-xxl.dsb](https://raw.githubusercontent.com/monitoringartist/zabbix-xxl/master/Dockerfile/zabbix-3.0/zabbix-3.0-xxl.dsb)
-
-Related Zabbix Docker projects
-==============================
-
-* [Zabbix agent 3.0 XXL with Docker monitoring support](https://github.com/monitoringartist/zabbix-agent-xxl)
-* Dockerized project [Grafana XXL](https://github.com/monitoringartist/grafana-xxl), which includes also [Grafana Zabbix datasource](https://github.com/alexanderzobnin/grafana-zabbix)
-* Scale your Dockerized [Zabbix with Kubernetes](https://github.com/monitoringartist/kubernetes-zabbix)
-
-Author
-======
-
-[Devops Monitoring Expert](http://www.jangaraj.com 'DevOps / Docker / Kubernetes / AWS ECS / Zabbix / Zenoss / Terraform / Monitoring'),
-who loves monitoring systems, which start with letter Z. Those are Zabbix and Zenoss.
-
-Professional devops / monitoring services:
-
-[![Monitoring Artist](http://monitoringartist.com/img/github-monitoring-artist-logo.jpg)](http://www.monitoringartist.com 'DevOps / Docker / Kubernetes / AWS ECS / Zabbix / Zenoss / Terraform / Monitoring')
