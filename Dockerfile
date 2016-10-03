@@ -61,6 +61,8 @@ ENV \
   XXL_apiuser=Admin \
   XXL_apipass=zabbix \
   XXL_analytics=true \
+  CUENTA_CORREO="" \
+  PASS_CORREO="" \
   TERM=xterm
 
 # Layer: base
