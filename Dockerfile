@@ -84,6 +84,8 @@ ENV \
   ZW_ZBX_SERVER=localhost \
   ZW_ZBX_SERVER_PORT=10051 \
   ZW_ZBX_SERVER_NAME="Zabbix Server" \
+  CUENTA_CORREO="" \
+  PASS_CORREO="" \
   TERM=xterm
 
 # Layer: base

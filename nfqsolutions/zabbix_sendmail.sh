@@ -16,7 +16,7 @@ MAIL_ACCOUNT = os.environ['CUENTA_CORREO']
 MAIL_PASSWORD = os.environ['PASS_CORREO']
 
 # Sender Name
-SENDER_NAME = u'Zabbix Alert'
+SENDER_NAME = 'Zabbix Alert'
 
 # Mail Server
 SMTP_SERVER = 'smtp.gmail.com'
