@@ -6,7 +6,6 @@ bbdd:
   - MARIADB_PASS=qwerty
  volumes:
   - /opt/zabbix_test/volumes/zabbix-backups:/zabbix-backup
-#  - /opt/zabbix_test/volumes/bbdd:/var/lib/mysql/zabbix/
 
 zabbix-server:
   image: test/zabbix3
@@ -18,11 +17,10 @@ zabbix-server:
     - /opt/zabbix_test/volumes/externalscripts:/usr/local/share/zabbix/externalscripts
     - /opt/zabbix_test/volumes/config:/usr/local/etc
     - /opt/zabbix_test/volumes/externalscripts:/testing
+    - /opt/zabbix_test/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
   links:
     - bbdd:bbdd
   environment:
     - ZS_DBHost=bbdd
     - ZS_DBUser=zabbix
     - ZS_DBPassword=qwerty
-    - CUENTA_CORREO=your@mail
-    - PASS_CORREO=yourPass
