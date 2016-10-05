@@ -5,19 +5,16 @@ bbdd:
   - MARIADB_USER=zabbix
   - MARIADB_PASS=qwerty
  volumes:
-  - /opt/zabbix_test/volumes/zabbix-backups:/zabbix-backup
+  - /opt/zabbix33/volumes/zabbix-backups:/zabbix-backup
 
 zabbix-server:
-  image: test/zabbix3
+  image: nfqsolutions/zabbix-server:3.3
   ports:
     - "80:80"
     - "10051:10051"
   volumes:
-    - /opt/zabbix_test/volumes/logs:/tmp/
-    - /opt/zabbix_test/volumes/externalscripts:/usr/local/share/zabbix/externalscripts
-    - /opt/zabbix_test/volumes/config:/usr/local/etc
-    - /opt/zabbix_test/volumes/externalscripts:/testing
-    - /opt/zabbix_test/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
+    - /opt/zabbix33/volumes/logs:/tmp/
+    - /opt/zabbix33/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
   links:
     - bbdd:bbdd
   environment:
