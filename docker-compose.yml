@@ -13,6 +13,7 @@ zabbix-server:
     - "80:80"
     - "10051:10051"
   volumes:
+    - /etc/localtime:/etc/localtime:ro
     - /opt/zabbix33/volumes/logs:/tmp/
     - /opt/zabbix33/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
   links:
