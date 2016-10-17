@@ -1,21 +1,20 @@
-
 bbdd:
  image: solutions/zabbix-db-mariadb
  environment:
   - MARIADB_USER=zabbix
   - MARIADB_PASS=qwerty
  volumes:
-  - /opt/zabbix33/volumes/zabbix-backups:/zabbix-backup
+  - /opt/zabbix/volumes/backups:/backups
 
 zabbix-server:
-  image: nfqsolutions/zabbix-server:3.3
+  image: nfqsolutions/zabbix-server:3.3.1
   ports:
     - "80:80"
     - "10051:10051"
   volumes:
     - /etc/localtime:/etc/localtime:ro
-    - /opt/zabbix33/volumes/logs:/tmp/
-    - /opt/zabbix33/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
+    - /opt/zabbix/volumes/logs:/tmp/
+    - /opt/zabbix/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
   links:
     - bbdd:bbdd
   environment:
