@@ -43,7 +43,7 @@ docker run \
     --volumes-from zabbix-db-storage \
     --env="MARIADB_USER=zabbix" \
     --env="MARIADB_PASS=my_password" \
-    solutions/zabbix-db-mariadb
+    nfqsolutions/zabbix-db-mariadb
 
 # start Zabbix linked to started DB
 docker run \
@@ -108,7 +108,7 @@ Example:
 		-v /etc/localtime:/etc/localtime:ro \
 		--env="MARIADB_USER=zabbix" \
 		--env="MARIADB_PASS=my_password" \
-		solutions/zabbix-db-mariadb
+		nfqsolutions/zabbix-db-mariadb
 
 Remember to use the same credentials when deploying zabbix image.
 
@@ -353,7 +353,7 @@ Run specific Zabbix version, e.g. 3.0.0 - just specify 3.0.0 tag for image:
 ```
 bbdd:
  container_name:zab-bbdd
- image: solutions/zabbix-db-mariadb
+ image: nfqsolutions/zabbix-db-mariadb
  restart: always
  environment:
   - MARIADB_USER=zabbix
