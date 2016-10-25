@@ -1,5 +1,7 @@
-Zabbix XXL
+Zabbix XXL (This container is a fork of monitoringartist/zabbix-xxl)
 ==========
+Solutions Team have Included gmail support and pyora support.
+===
 
 [Zabbix XXL](https://github.com/monitoringartist/zabbix-xxl) is a standard Zabbix prepared for Docker world. You must install Zabbix package (rpm, deb, ...) in the old world. Similarly, you need to pull Zabbix Docker image in the Docker world. This Docker image contains standard Zabbix + additional XXL (community) extensions. Routine tasks such as import of Zabbix DB are automated, so it's prepared for easy deployment.
 
@@ -17,14 +19,14 @@ If you like or use this project, please provide feedback to author - Star it ★
 - **[Monitoring Analytics](https://hub.docker.com/r/monitoringartist/monitoring-analytics/)** - R statistical computing and graphics for monitoring from data scientists
 - **[Docker killer](https://hub.docker.com/r/monitoringartist/docker-killer/)** - Docker image for Docker stress and Docker orchestration testing
 
-zabbix-3.0 [![Deploy to Docker Cloud](https://files.cloud.docker.com/images/deploy-to-dockercloud.svg)](https://cloud.docker.com/stack/deploy/?repo=https://github.com/monitoringartist/zabbix-xxl/tree/master/Dockerfile/zabbix-3.0/) [![](https://badge.imagelayers.io/monitoringartist/zabbix-3.0-xxl:latest.svg)](https://imagelayers.io/?images=monitoringartist/zabbix-3.0-xxl:latest)
+zabbix-3.0
 =================
 
 Compiled Zabbix (server, proxy, agent, java gateway, snmpd daemon) with almost all features (MySQL support, Java, SNMP, Curl, Ipmi, SSH, fping) and Zabbix web UI based on CentOS 7, Supervisor, Nginx, PHP. Image requires external MySQL/MariDB database (you can run MySQL/MariaDB as a Docker container). Integated XXL extensions: Searcher, Grapher, Zapix, template auto import, API command/script execution (some extensions must be explicitly enabled - see env variables section).
 
 ![Zabbix 3.0 XXL Zabbix searcher](https://raw.githubusercontent.com/monitoringartist/zabbix-xxl/master/doc/zabbix-3.0-xxl-zabbix-searcher.png)
-![Zabbix 3.0 XXL Zapix](https://raw.githubusercontent.com/monitoringartist/zabbix-xxl/master/doc/zabbix-3.0-xxl-zapix.png)
-![Zabbix 3.0 XXL Grapher](https://raw.githubusercontent.com/monitoringartist/zabbix-xxl/master/doc/zabbix-3.0-xxl-grapher.png)
+
+
 
 #### Standard Dockerized Zabbix deployment
 
@@ -41,7 +43,7 @@ docker run \
     --volumes-from zabbix-db-storage \
     --env="MARIADB_USER=zabbix" \
     --env="MARIADB_PASS=my_password" \
-    monitoringartist/zabbix-db-mariadb
+    nfqsolutions/zabbix-db-mariadb
 
 # start Zabbix linked to started DB
 docker run \
@@ -54,7 +56,7 @@ docker run \
     --env="ZS_DBHost=zabbix.db" \
     --env="ZS_DBUser=zabbix" \
     --env="ZS_DBPassword=my_password" \
-    monitoringartist/zabbix-3.0-xxl:latest
+    nfqsolutions/zabbix-server
 # wait ~60 seconds for Zabbix initialization
 # Zabbix web will be available on the port 80, Zabbix server on the port 10051
 ```
@@ -106,7 +108,7 @@ Example:
 		-v /etc/localtime:/etc/localtime:ro \
 		--env="MARIADB_USER=zabbix" \
 		--env="MARIADB_PASS=my_password" \
-		monitoringartist/zabbix-db-mariadb
+		nfqsolutions/zabbix-db-mariadb
 
 Remember to use the same credentials when deploying zabbix image.
 
@@ -275,7 +277,7 @@ Example:
 		--env="ZS_DBHost=zabbix.db" \
 		--env="ZS_DBUser=zabbix" \
 		--env="ZS_DBPassword=my_password" \
-		monitoringartist/zabbix-3.0-xxl:latest
+		nfqsolutions/zabbix-server
 
 #### Access to Zabbix web interface
 To log in into Zabbix web interface for the first time use credentials
@@ -344,6 +346,127 @@ Run specific Zabbix version, e.g. 3.0.0 - just specify 3.0.0 tag for image:
 		--env="ZS_DBHost=zabbix.db" \
 		--env="ZS_DBUser=zabbix" \
 		--env="ZS_DBPassword=my_password" \
-		monitoringartist/zabbix-3.0-xxl:3.0.0
+		nfqsolutions/zabbix-server
 ```
 
+## COMPOSE
+```
+bbdd:
+ container_name:zab-bbdd
+ image: nfqsolutions/zabbix-db-mariadb
+ restart: always
+ environment:
+  - MARIADB_USER=zabbix
+  - MARIADB_PASS=qwerty
+ volumes:
+  - /opt/zabbix/volumes/backups:/backups
+  - /opt/zabbix/volumes/bbdd:/var/lib/mysql
+
+zabbix:
+ container_name: zab-app
+ image: nfqsolutions/zabbix-server
+ restart: always
+ ports:
+  - "1051:1051"
+  - "80:80"
+ environment:
+  - ZS_DBHost=bbdd
+  - ZS_DBUser=zabbix
+  - ZS_DBPassword=qwerty
+ volumes:
+  - /opt/zabbix/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
+  - /opt/zabbix/volumes/logs:/tmp/
+ links:
+  - bbdd:bbdd
+```
+Pyora
+=====
+
+Python script to monitor oracle
+
+You must create Host with Ip of zabbix server and put the database IP in macros
+
+
+Create Oracle user for Pyora usage
+=====
+
+    CREATE USER ZABBIX IDENTIFIED BY <REPLACE WITH PASSWORD> DEFAULT TABLESPACE SYSTEM TEMPORARY TABLESPACE TEMP PROFILE DEFAULT ACCOUNT UNLOCK;
+    GRANT CONNECT TO ZABBIX;
+    GRANT RESOURCE TO ZABBIX;
+    ALTER USER ZABBIX DEFAULT ROLE ALL;
+    GRANT SELECT ANY TABLE TO ZABBIX;
+    GRANT CREATE SESSION TO ZABBIX;
+    GRANT SELECT ANY DICTIONARY TO ZABBIX;
+    GRANT UNLIMITED TABLESPACE TO ZABBIX;
+    GRANT SELECT ANY DICTIONARY TO ZABBIX;
+    GRANT SELECT ON V_$SESSION TO ZABBIX;
+    GRANT SELECT ON V_$SYSTEM_EVENT TO ZABBIX;
+    GRANT SELECT ON V_$EVENT_NAME TO ZABBIX;
+    GRANT SELECT ON V_$RECOVERY_FILE_DEST TO ZABBIX;
+
+
+Usage
+=====
+
+    » python pyora.py
+    usage: pyora.py [-h] [--username USERNAME] [--password PASSWORD]
+                    [--address ADDRESS] [--database DATABASE]
+
+                    {activeusercount,bufbusywaits,check_active,check_archive,commits,db_close,db_connect,dbfilesize,dbprllwrite,dbscattread,dbseqread,dbsize,dbsnglwrite,deadlocks,directread,directwrite,dsksortratio,enqueue,freebufwaits,hparsratio,indexffs,lastapplarclog,lastarclog,latchfree,logfilesync,logonscurrent,logprllwrite,logswcompletion,netresv,netroundtrips,netsent,query_lock,query_redologs,query_rollbacks,query_sessions,query_temp,rcachehit,redowrites,rollbacks,show_tablespaces,tablespace,tblrowsscans,tblscans,uptime,version}
+                    ...
+    pyora.py: error: too few arguments
+
+
+    # Check Oracle version
+    0: python pyora.py --username pyora --password secret --address 127.0.0.1 --database DATABASE version
+    Oracle Database 10g Enterprise Edition Release 10.2.0.4.0 - 64bi
+
+    # Check Oracle active user count
+    0: python pyora.py --username pyora --password secret --address 127.0.0.1 --database DATABASE activeusercount
+    68
+
+    # Show the tablespaces names in a JSON format
+    0: python pyora.py show_tablespaces
+    {
+        "data":[
+        { "{#TABLESPACE}":"ORASDPM"},
+        { "{#TABLESPACE}":"MDS"},
+        { "{#TABLESPACE}":"SOADEV_MDS"},
+        { "{#TABLESPACE}":"ORABAM"},
+        { "{#TABLESPACE}":"SOAINF"},
+        { "{#TABLESPACE}":"DATA"},
+        { "{#TABLESPACE}":"MGMT_AD4J_TS"},
+        { "{#TABLESPACE}":"MGMT_ECM_DEPOT_TS"},
+        { "{#TABLESPACE}":"MGMT_TABLESPACE"},
+        { "{#TABLESPACE}":"RECOVER"},
+        { "{#TABLESPACE}":"RMAN_CAT"},
+        { "{#TABLESPACE}":"SYSAUX"},
+        { "{#TABLESPACE}":"SYSTEM"},
+        { "{#TABLESPACE}":"TEMP"},
+        { "{#TABLESPACE}":"UNDOTBS"},
+        { "{#TABLESPACE}":"VIRTUALCENTER"},
+        ]
+    }
+
+    # Show a particular tablespace usage in %
+    0: python pyora.py --username pyora --password secret --address 127.0.0.1 --database DATABASE tablespace SYSTEM
+    92.45
+
+
+
+## CREATE BBDD BACKUP
+```
+docker exec \
+    -it bbddContainerName \
+    bash -c "\
+    mysqldump -u zabbix -p zabbix | \
+    bzip2 -cq9 > /backups/zabbix_db_dump_$(date +%Y-%m-%d-%H.%M.%S).sql.bz2"
+```
+
+## RESTORE BBDD BACKUP
+```
+docker exec \
+    -it bbddContainerName \
+    bash -c "\
+    mysql -u zabbix -p zabbix < /backups/MIBACKUP.sql"
+```
