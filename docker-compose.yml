@@ -1,23 +1,27 @@
 bbdd:
- image: solutions/zabbix-db-mariadb
+ container_name:zab-bbdd
+ image: nfqsolutions/zabbix-db-mariadb
+ restart: always
  environment:
   - MARIADB_USER=zabbix
   - MARIADB_PASS=qwerty
  volumes:
   - /opt/zabbix/volumes/backups:/backups
+  - /opt/zabbix/volumes/bbdd:/var/lib/mysql
 
-zabbix-server:
-  image: nfqsolutions/zabbix-server:3.3.1
-  ports:
-    - "80:80"
-    - "10051:10051"
-  volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - /opt/zabbix/volumes/logs:/tmp/
-    - /opt/zabbix/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
-  links:
-    - bbdd:bbdd
-  environment:
-    - ZS_DBHost=bbdd
-    - ZS_DBUser=zabbix
-    - ZS_DBPassword=qwerty
+zabbix:
+ container_name: zab-app
+ image: nfqsolutions/zabbix-server
+ restart: always
+ ports:
+  - "1051:1051"
+  - "81:80"
+ environment:
+  - ZS_DBHost=bbdd
+  - ZS_DBUser=zabbix
+  - ZS_DBPassword=qwerty
+ volumes:
+  - /opt/zabbix/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
+  - /opt/zabbix/volumes/logs:/tmp/
+ links:
+  - bbdd:bbdd
