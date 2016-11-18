@@ -1,5 +1,5 @@
 bbdd:
- container_name:zab-bbdd
+ container_name: zab-bbdd
  image: nfqsolutions/zabbix-db-mariadb
  restart: always
  environment:
