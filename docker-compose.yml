@@ -17,11 +17,13 @@ zabbix:
   - "1051:1051"
   - "81:80"
  environment:
+  - PHP_date_timezone=Europe/Madrid
   - ZS_DBHost=bbdd
   - ZS_DBUser=zabbix
   - ZS_DBPassword=qwerty
  volumes:
-  - /opt/zabbix/volumes/alertscripts:/usr/local/share/zabbix/alertscripts
+  - /opt/zabbix/volumes/externalscripts:/usr/local/share/zabbix/alertscripts
+#  - /opt/zabbix/volumes/alertscripts:/usr/local/share/zabbix/externalscripts
   - /opt/zabbix/volumes/logs:/tmp/
  links:
   - bbdd:bbdd
