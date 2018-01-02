@@ -1,13 +1,15 @@
 FROM centos:centos7
-MAINTAINER Jan Garaj info@monitoringartist.com
+LABEL maintainer "Jan Garaj <info@monitoringartist.com>"
 
-# ZABBIX_VERSION=trunk tags/2.4.7 branches/dev/ZBXNEXT-1263-1
+# ZABBIX_VERSION=trunk tags/3.0.1 branches/dev/ZBXNEXT-1263-1
 
 ENV \
-  ZABBIX_VERSION=trunk \
+  ZABBIX_VERSION=tags/3.4.5 \
   ZS_enabled=true \
   ZA_enabled=true \
   ZW_enabled=true \
+  ZJ_enabled=false \
+  ZP_enabled=false \
   SNMPTRAP_enabled=false \
   STATUS_PAGE_ALLOWED_IP=127.0.0.1 \
   JAVA_HOME=/usr/lib/jvm/jre \
@@ -17,73 +19,52 @@ ENV \
   PHP_max_input_time=300 \
   PHP_memory_limit=128M \
   PHP_error_reporting=E_ALL \
-  ZS_ListenPort=10051 \
-  ZS_SourceIP="" \
-  ZS_LogFile=/tmp/zabbix_server.log \
-  ZS_LogFileSize=10 \
-  ZS_DebugLevel=3 \
+  ZS_LogType=console \
   ZS_PidFile=/var/run/zabbix_server.pid \
+  ZS_User=zabbix \
   ZS_DBHost=zabbix.db \
   ZS_DBName=zabbix \
-  ZS_DBSchema="" \
   ZS_DBUser=zabbix \
   ZS_DBPassword=zabbix \
-  ZS_DBSocket=/tmp/mysql.sock \
   ZS_DBPort=3306 \
-  ZS_StartPollers=5 \
-  ZS_StartPollersUnreachable=1 \
-  ZS_StartTrappers=5 \
-  ZS_StartPingers=1 \
-  ZS_StartDiscoverers=1 \
-  ZS_StartHTTPPollers=1 \
-  ZS_StartTimers=1 \
-  ZS_JavaGateway=127.0.0.1 \
-  ZS_JavaGatewayPort=10052 \
-  ZS_StartJavaPollers=0 \
-  ZS_StartVMwareCollectors=0 \
-  ZS_VMwareFrequency=60 \
-  ZS_VMwarePerfFrequency=60 \
-  ZS_VMwareCacheSize=8M \
-  ZS_VMwareTimeout=10 \
-  ZS_SNMPTrapperFile=/tmp/zabbix_traps.tmp \
-  ZS_StartSNMPTrapper=0 \
-  ZS_ListenIP=0.0.0.0 \
-  ZS_HousekeepingFrequency=1 \
-  ZS_MaxHousekeeperDelete=500 \
-  ZS_SenderFrequency=30 \
-  ZS_CacheSize=8M \
-  ZS_CacheUpdateFrequency=60 \
-  ZS_StartDBSyncers=4 \
-  ZS_HistoryCacheSize=8M \
-  ZS_TrendCacheSize=4M \
-  ZS_HistoryTextCacheSize=16M \
-  ZS_ValueCacheSize=8M \
-  ZS_Timeout=3 \
-  ZS_TrapperTimeout=300 \
-  ZS_UnreachablePeriod=45 \
-  ZS_UnavailableDelay=60 \
-  ZS_UnreachableDelay=15 \
+  ZS_PidFile=/tmp/zabbix_server.pid \
   ZS_AlertScriptsPath=/usr/local/share/zabbix/alertscripts \
   ZS_ExternalScripts=/usr/local/share/zabbix/externalscripts \
-  ZS_FpingLocation=/usr/sbin/fping \
-  ZS_Fping6Location=/usr/sbin/fping6 \
-  ZS_SSHKeyLocation="" \
-  ZS_LogSlowQueries=0 \
-  ZS_TmpDir=/tmp \
-  ZS_StartProxyPollers=1 \
-  ZS_ProxyConfigFrequency=3600 \
-  ZS_ProxyDataFrequency=1 \
-  ZS_AllowRoot=0 \
-  ZS_User=zabbix \
-  ZS_Include="" \
   ZS_SSLCertLocation=/usr/local/share/zabbix/ssl/certs \
   ZS_SSLKeyLocation=/usr/local/share/zabbix/ssl/keys \
-  ZS_SSLCALocation="" \
   ZS_LoadModulePath=/usr/lib/zabbix/modules \
-  ZS_LoadModule="" \
+  ZS_JavaGateway=127.0.0.1 \
+  ZS_JavaGatewayPort=10052 \
   ZW_ZBX_SERVER=localhost \
   ZW_ZBX_SERVER_PORT=10051 \
   ZW_ZBX_SERVER_NAME="Zabbix Server" \
+  ZA_LogType=console \
+  ZA_Hostname="Zabbix Server" \
+  ZA_User=zabbix \
+  ZA_PidFile=/tmp/zabbix_agentd.pid \
+  ZA_Server=127.0.0.1 \
+  ZA_ServerActive=127.0.0.1 \
+  ZJ_LISTEN_IP=0.0.0.0 \
+  ZJ_LISTEN_PORT=10052 \
+  ZJ_PID_FILE=/tmp/zabbix_java.pid \
+  ZJ_START_POLLERS=5 \
+  ZJ_TIMEOUT=3 \
+  ZJ_LogLevel=error \
+  ZJ_TCP_TIMEOUT=3000 \
+  ZP_LogType=console \
+  ZP_DBHost=zabbixproxy.db \
+  ZP_DBName=zabbix \
+  ZP_DBUser=zabbix \
+  ZP_DBPassword=zabbix \
+  ZP_User=zabbix \
+  XXL_searcher=true \
+  XXL_updatechecker=true \
+  XXL_zapix=false \
+  XXL_grapher=false \
+  XXL_api=true \
+  XXL_apiuser=Admin \
+  XXL_apipass=zabbix \
+  XXL_analytics=true \
   TERM=xterm
 
 # Layer: base
@@ -91,23 +72,19 @@ RUN \
   yum clean all && \
   yum update -y && \
   yum install -y epel-release && \
-  sed -i -e "\|^https://\"http://|d" /etc/yum.repos.d/epel.repo && \
   yum clean all && \
   yum install -y supervisor && \
   yum install -y http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm && \
   yum install -y nginx inotify-tools && \
-  `# Rename nginx:nginx user/group to www:www, also set uid:gid to 80:80 (just to make it nice)` \
   groupmod --gid 80 --new-name www nginx && \
   usermod --uid 80 --home /data/www --gid 80 --login www --shell /bin/bash --comment www nginx && \
-  `# Clean-up /etc/nginx/ directory from all not needed stuff...` \
   rm -rf /etc/nginx/*.d /etc/nginx/*_params && \
-  `# Prepare dummy SSL certificates` \
   mkdir -p /etc/nginx/ssl && \
   openssl genrsa -out /etc/nginx/ssl/dummy.key 2048 && \
   openssl req -new -key /etc/nginx/ssl/dummy.key -out /etc/nginx/ssl/dummy.csr -subj "/C=GB/L=London/O=Company Ltd/CN=zabbix-docker" && \
   openssl x509 -req -days 3650 -in /etc/nginx/ssl/dummy.csr -signkey /etc/nginx/ssl/dummy.key -out /etc/nginx/ssl/dummy.crt && \
-  yum install -y http://rpms.famillecollet.com/enterprise/remi-release-7.rpm && \
-  yum install -y --enablerepo=remi-php56 php-fpm \
+  yum install -y http://rpms.remirepo.net/enterprise/remi-release-7.rpm && \
+  yum install -y --enablerepo=remi-php70 php-fpm \
        php-gd php-bcmath php-ctype php-xml php-xmlreader php-xmlwriter \
        php-session php-net-socket php-mbstring php-gettext php-cli \
        php-mysqlnd php-opcache php-pdo php-snmp php-ldap && \
@@ -117,70 +94,144 @@ ADD container-files-base /
 # Layer: zabbix
 COPY container-files-zabbix /
 RUN \
+  export FPING_VERSION=4.0 && \
   yum clean all && \
   yum update -y && \
   yum install -y tar svn gcc automake make nmap traceroute iptstate wget \
               net-snmp-devel net-snmp-libs net-snmp net-snmp-perl iksemel \
-              net-snmp-python net-snmp-utils java-1.8.0-openjdk python-pip \
+              net-snmp-python net-snmp-utils java-1.8.0-openjdk \
               java-1.8.0-openjdk-devel mariadb-devel libxml2-devel gettext \
               libcurl-devel OpenIPMI-devel mysql iksemel-devel libssh2-devel \
               unixODBC unixODBC-devel mysql-connector-odbc postgresql-odbc \
-              openldap-devel telnet net-tools snmptt sudo && \
- `# reinstall glibc for locales` \
+              openldap-devel telnet net-tools snmptt sudo rubygems ruby-devel \
+              jq openssh-clients python-httplib2 python-simplejson \
+              libevent-devel openldap-clients && \
   yum -y -q reinstall glibc-common && \
   cp /usr/local/etc/zabbix_agentd.conf /tmp && \
   svn co svn://svn.zabbix.com/${ZABBIX_VERSION} /usr/local/src/zabbix && \
   cd /usr/local/src/zabbix && \
-  DATE=`date +%Y-%m-%d` && \
-  sed -i "s/ZABBIX_VERSION.*'\(.*\)'/ZABBIX_VERSION', '\1 ($DATE)'/g" frontends/php/include/defines.inc.php && \
-  sed -i "s/ZABBIX_VERSION_RC.*\"\(.*\)\"/ZABBIX_VERSION_RC \"\1 (${DATE})\"/g" include/version.h && \
-  sed -i "s/String VERSION =.*\"\(.*\)\"/String VERSION = \"\1 (${DATE})\"/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
+  DATE=$(date +%Y-%m-%d) && \
+  sed -i "s/ZABBIX_VERSION.*'\(.*\)'/ZABBIX_VERSION', '\1 Dockbix XXL ($DATE)'/g" frontends/php/include/defines.inc.php && \
+  sed -i "s/ZABBIX_VERSION_RC.*\"\(.*\)\"/ZABBIX_VERSION_RC \"\1 Dockbix XXL (${DATE})\"/g" include/version.h && \
+  sed -i "s/String VERSION =.*\"\(.*\)\"/String VERSION = \"\1 Dockbix XXL (${DATE})\"/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
+  zabbix_revision=$(svn info svn://svn.zabbix.com/${ZABBIX_VERSION} |grep "Last Changed Rev"|awk '{print $4;}') && \
+  sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
   ./bootstrap.sh && \
+  export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
   ./configure --enable-server --enable-agent --with-mysql --enable-java \
               --with-net-snmp --with-libcurl --with-libxml2 --with-openipmi \
               --enable-ipv6 --with-jabber --with-openssl --with-ssh2 \
-              --with-ldap --with-unixodbc && \
-  make dbschema && \
-  make install && \
-  cp /usr/local/etc/web/zabbix.conf.php /usr/local/src/zabbix/frontends/php/conf/ && \
-  pip install py-zabbix && \
-  wget https://github.com/schweikert/fping/archive/3.10.tar.gz && \
-  tar -xvf 3.10.tar.gz && \
-  cd fping-3.10/ && \
-  ./autogen.sh && \
-  ./configure --prefix=/usr --enable-ipv6 --enable-ipv4 && \
-  make && \
-  make install && \
+              --enable-proxy --with-ldap --with-unixodbc && \
+  make -j"$(nproc)" dbschema && \
+  make -j"$(nproc)" install && \
   mv /health/ /usr/local/src/zabbix/frontends/php/ && \
+  cp /usr/local/etc/web/zabbix.conf.php /usr/local/src/zabbix/frontends/php/conf/ && \
+  wget https://github.com/schweikert/fping/releases/download/v${FPING_VERSION}/fping-${FPING_VERSION}.tar.gz && \
+  tar -xvf fping-${FPING_VERSION}.tar.gz && \
+  cd fping-${FPING_VERSION}/ && \
+  ./configure --prefix=/usr --disable-ipv6; make clean install && \
+  ./configure --prefix=/usr --disable-ipv4 --program-suffix=6; make clean install && \
   setcap cap_net_raw+ep /usr/sbin/fping || echo 'Warning: setcap cap_net_raw+ep /usr/sbin/fping' && \
   setcap cap_net_raw+ep /usr/sbin/fping6 || echo 'Warning: setcap cap_net_raw+ep /usr/sbin/fping6' && \
   chmod 4710 /usr/sbin/fping && \
   chmod 4710 /usr/sbin/fping6 && \
   cd .. && \
   cp -f /tmp/zabbix_agentd.conf /usr/local/etc/ && \
-  rm -rf fping-3.10 && \
-  rm -rf 3.10.tar.gz && \
+  rm -rf fping-${FPING_VERSION} && \
+  rm -rf ${FPING_VERSION}.tar.gz && \
   cd /usr/local/src/zabbix/frontends/php && \
   locale/make_mo.sh && \
-  yum autoremove -y gettext python-pip tar svn gcc automake mariadb-devel \
+  yum autoremove -y gettext svn gcc automake mariadb-devel zlib-devel \
                     java-1.8.0-openjdk-devel libxml2-devel libcurl-devel \
-                    OpenIPMI-devel iksemel-devel && \
+                    OpenIPMI-devel iksemel-devel rubygems ruby-devel \
+                    kernel-headers ruby-devel unixODBC-devel && \
   yum install -y OpenIPMI-libs && \
   chmod +x /config/bootstrap.sh && \
   chmod +x /config/ds.sh && \
   chmod +x /usr/local/src/zabbix/misc/snmptrap/zabbix_trap_receiver.pl && \
   chmod +x /usr/share/snmptt/snmptthandler-embedded && \
+  sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoers && \
+  localedef -i en_US -f UTF-8 en_US.UTF-8 && \
   yum clean all && \
   mkdir -p /usr/local/share/ssl/certs && \
   mkdir -p /usr/local/share/ssl/keys && \
   mkdir -p /usr/lib/zabbix/modules && \
   mkdir -p /etc/zabbix/snmp/mibs && \
+  rm -rf /usr/local/src/zabbix/[a,A,b,c,C,i,I,m,M,n,N,r,R,s,t,u,r,\.]* /usr/local/src/zabbix/depcomp /usr/local/src/zabbix/.svn && \
+  rm -rf /usr/local/src/zabbix/database/[i,M,o,p,s]* && \
+  rm -rf /tmp/*
+  # TODO apply http://geofrogger.net/review/snmptt-hide-generic-part.patch
+
+# Layer: dockbix-xxl
+COPY container-files-dockbix-xxl /
+RUN \
+  chmod +x /usr/local/src/zabbix/supervisord-listener.py && \
+  yum -y -q reinstall glibc-common && \
+  cd /tmp && \
+  yumdownloader glibc-common && \
+  rpm2cpio glibc-common*.rpm | cpio -idmv && \
+  rm -vf /usr/lib/locale/locale-archive.tmpl && \
+  cp -vf ./usr/lib/locale/locale-archive.tmpl /usr/lib/locale/ && \
+  build-locale-archive && \
+  rm -rf /tmp/* && \
+  yum install -y ipa-pgothic-fonts python-boto python-pip && \
+  cp /usr/share/fonts/ipa-pgothic/ipagp.ttf /usr/local/src/zabbix/frontends/php/fonts && \
+  pip install pyzabbix && \
+  yum autoremove -y ipa-pgothic-fonts python-pip && \
+  yum clean all && \
+  grep 'XXL' /usr/local/src/zabbix/frontends/php/include/defines.inc.php && \
+  sed -i "s#]))->addClass(ZBX_STYLE_FOOTER);#,' / ',(new CLink('Monitoring Artist Ltd', 'http://www.monitoringartist.com'))->addClass(ZBX_STYLE_GREY)->addClass(ZBX_STYLE_LINK_ALT)->setAttribute('target', '_blank'),]))->addClass(ZBX_STYLE_FOOTER);#g" /usr/local/src/zabbix/frontends/php/include/html.inc.php && \
+  grep 'www.monitoringartist.com' /usr/local/src/zabbix/frontends/php/include/html.inc.php && \
+  sed -i "s/(new CDiv())->addClass(ZBX_STYLE_SIGNIN_LOGO),/(new CDiv())->addClass(ZBX_STYLE_SIGNIN_LOGO),(new CDiv())->addClass(ZBX_STYLE_CENTER)->addItem((new CTag('h1', true, _('Dockbix XXL')))->addClass(ZBX_STYLE_BLUE))->addItem((new CLink(_('Maintained by Monitoring Artist'), 'http:\/\/www.monitoringartist.com'))->setTarget('_blank')->addClass(ZBX_STYLE_GREY)),/g" /usr/local/src/zabbix/frontends/php/include/views/general.login.php && \
+  grep 'www.monitoringartist.com' /usr/local/src/zabbix/frontends/php/include/views/general.login.php && \
+  sed -i "s#echo '</body></html>';#echo \"<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create','UA-72810204-2','auto');ga('send','pageview');</script></body></html>\";#g" /usr/local/src/zabbix/frontends/php/include/page_footer.php && \
+  grep 'UA-72810204-2' /usr/local/src/zabbix/frontends/php/include/page_footer.php && \
+  sed -i "s#echo '</body></html>';#echo \"<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create','UA-72810204-2','auto');ga('send','pageview');</script></body></html>\";#g" /usr/local/src/zabbix/frontends/php/app/views/layout.htmlpage.php && \
+  grep 'UA-72810204-2' /usr/local/src/zabbix/frontends/php/app/views/layout.htmlpage.php && \
+  ZVERSION=$(zabbix_agentd -V | grep ^zabbix_agentd | awk -F'\\(Zabbix\\) ' '{print $2}') && \
+  sed -i "s#^var xxlCurrentVersion =.*#var xxlCurrentVersion = \"$ZVERSION\";#" /usr/local/src/zabbix/frontends/php/updatechecker/updatechecker.js && \
+  grep "$ZVERSION" /usr/local/src/zabbix/frontends/php/updatechecker/updatechecker.js && \
+  sed -i "s#.*</body></html>.*#echo \"<script type='text/javascript' src='updatechecker/updatechecker.js'></script>\";\n&#" /usr/local/src/zabbix/frontends/php/include/page_footer.php && \
+  grep 'updatechecker.js' /usr/local/src/zabbix/frontends/php/include/page_footer.php && \
+  sed -i "s#</body></html>#<script type='text/javascript' src='updatechecker/updatechecker.js'></script></body></html>#g" /usr/local/src/zabbix/frontends/php/app/views/layout.htmlpage.php && \
+  grep 'updatechecker.js' /usr/local/src/zabbix/frontends/php/app/views/layout.htmlpage.php && \
+  sed -i "s#'login' => \[#'xxl' => \n[\n'label' => _('XXL extensions'),\n'user_type' => USER_TYPE_SUPER_ADMIN,\n'default_page_id' => 0,\n'pages' => [\n['url' => 'searcher.php','label' => _('Searcher'),],\n['url' => 'zapix.php','label' => _('Zapix'),],\n['url' => 'grapher.php','label' => _('Grapher'),],\n['url' => 'about.php','label' => _('About'),]\n]],\n'login' => [#g" /usr/local/src/zabbix/frontends/php/include/menu.inc.php && \
+  grep 'XXL extensions' /usr/local/src/zabbix/frontends/php/include/menu.inc.php && \
+  sed -i "s#'admin': 0},# 'admin': 0, 'xxl': 0},#g" /usr/local/src/zabbix/frontends/php/js/main.js && \
+  grep "'xxl': 0}" /usr/local/src/zabbix/frontends/php/js/main.js && \
   rm -rf /tmp/*
 
-  # TODO apply http://geofrogger.net/review/snmptt-hide-generic-part.patch
+
+######################################## NFQSOLUTIONS CONTRIBUTION ##################################################
+COPY nfqsolutions/zabbix_sendmail.sh /usr/local/share/zabbix/alertscripts/zabbix_sendmail.sh
+COPY nfqsolutions/pyora.py /usr/local/share/zabbix/externalscripts/pyora.py
+RUN chmod +x /usr/local/share/zabbix/alertscripts/zabbix_sendmail.sh
+RUN chmod +x /usr/local/share/zabbix/externalscripts/pyora.py
+RUN echo "UserParameter=pyora[*],/usr/local/share/zabbix/externalscripts/pyora.py --username \$1 --password \$2 --address \$3 --database \$4 \$5 \$6 \$7 \$8" >> /usr/local/etc/zabbix_agentd.conf
+
+## INSTALACION Y CONFIGURACION DE PYORA
+ADD nfqsolutions/cx_Oracle-5.1.2-11g-py27-1.x86_64.rpm /tmp
+ADD nfqsolutions/oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm /tmp
+RUN yum install -y libaio
+RUN rpm -ivh /tmp/oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm
+RUN rpm -ivh /tmp/cx_Oracle-5.1.2-11g-py27-1.x86_64.rpm
+ENV LD_LIBRARY_PATH=/usr/lib/oracle/11.2/client64/lib/
+ENV ORACLE_HOME=/usr/lib/oracle/11.2/client64/
+ENV PATH=$ORACLE_HOME/bin:$PATH
+
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libclntsh.so.11.1 /usr/lib64/libclntsh.so.11.1
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libnnz11.so /usr/lib64/libnnz11.so
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libocci.so.11.1 /usr/lib64/libocci.so.11.1
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libociei.so /usr/lib64/libociei.so
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libsqlplusic.so /usr/lib64/libsqlplusic.so
+RUN ln -sf /usr/lib/oracle/11.2/client64/lib/libsqlplus.so /usr/lib64/libsqlplus.so
+
+RUN ln -sf /usr/share/zoneinfo/Europe/Madrid /etc/localtime
+
+
 
 CMD ["/config/bootstrap.sh"]
 
-VOLUME ["/etc/custom-config", "/usr/local/share/zabbix/externalscripts", "/usr/local/share/zabbix/ssl/certs", "/usr/local/share/zabbix/ssl/keys", "/usr/lib/zabbix/modules", "/usr/share/snmp/mibs", "/etc/snmp"]
+VOLUME ["/etc/custom-config", "/usr/local/share/zabbix/alertscripts", "/usr/local/share/zabbix/externalscripts", "/usr/local/share/zabbix/ssl/certs", "/usr/local/share/zabbix/ssl/keys", "/usr/lib/zabbix/modules", "/usr/share/snmp/mibs", "/etc/snmp", "/etc/openldap/"]
 
-EXPOSE 80 162/udp 10051 10052
+EXPOSE 80/TCP 162/UDP 10051/TCP 10052/TCP
